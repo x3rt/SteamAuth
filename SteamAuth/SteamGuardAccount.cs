@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace SteamAuth
 {
+    using System.Collections.Generic;
+
     public class SteamGuardAccount
     {
         [JsonProperty("shared_secret")]
@@ -45,18 +47,22 @@ namespace SteamAuth
         [JsonProperty("device_id")]
         public string DeviceID { get; set; }
 
+        [JsonProperty("api_key")]
+        public string ApiKey { get; set; }
+
         /// <summary>
-        /// Set to true if the authenticator has actually been applied to the account.
+        ///     Set to true if the authenticator has actually been applied to the account.
         /// </summary>
         [JsonProperty("fully_enrolled")]
         public bool FullyEnrolled { get; set; }
 
         public SessionData Session { get; set; }
 
-        private static byte[] steamGuardCodeTranslations = new byte[] { 50, 51, 52, 53, 54, 55, 56, 57, 66, 67, 68, 70, 71, 72, 74, 75, 77, 78, 80, 81, 82, 84, 86, 87, 88, 89 };
+        private static byte[] steamGuardCodeTranslations = new byte[]
+            { 50, 51, 52, 53, 54, 55, 56, 57, 66, 67, 68, 70, 71, 72, 74, 75, 77, 78, 80, 81, 82, 84, 86, 87, 88, 89 };
 
         /// <summary>
-        /// Remove steam guard from this account
+        ///     Remove steam guard from this account
         /// </summary>
         /// <param name="scheme">1 = Return to email codes, 2 = Remove completley</param>
         /// <returns></returns>
@@ -66,7 +72,10 @@ namespace SteamAuth
             postBody.Add("revocation_code", this.RevocationCode);
             postBody.Add("revocation_reason", "1");
             postBody.Add("steamguard_scheme", scheme.ToString());
-            string response = await SteamWeb.POSTRequest("https://api.steampowered.com/ITwoFactorService/RemoveAuthenticator/v1?access_token=" + this.Session.AccessToken, null, postBody);
+            string response = await SteamWeb.POSTRequest(
+                "https://api.steampowered.com/ITwoFactorService/RemoveAuthenticator/v1?access_token=" + this.Session.AccessToken,
+                null,
+                postBody);
 
             // Parse to object
             var removeResponse = JsonConvert.DeserializeObject<RemoveAuthenticatorResponse>(response);
@@ -111,7 +120,8 @@ namespace SteamAuth
             try
             {
                 byte b = (byte)(hashedData[19] & 0xF);
-                int codePoint = (hashedData[b] & 0x7F) << 24 | (hashedData[b + 1] & 0xFF) << 16 | (hashedData[b + 2] & 0xFF) << 8 | (hashedData[b + 3] & 0xFF);
+                int codePoint = (hashedData[b] & 0x7F) << 24 | (hashedData[b + 1] & 0xFF) << 16 | (hashedData[b + 2] & 0xFF) << 8 |
+                                (hashedData[b + 3] & 0xFF);
 
                 for (int i = 0; i < 5; ++i)
                 {
@@ -123,7 +133,37 @@ namespace SteamAuth
             {
                 return null; //Change later, catch-alls are bad!
             }
+
             return Encoding.UTF8.GetString(codeArray);
+        }
+
+        public async Task<List<TradeOffer>> FetchTradesAsync()
+        {
+            if (string.IsNullOrEmpty(ApiKey))
+            {
+                return null;
+            }
+
+            if (ApiKey.Trim().Length != 32)
+            {
+                return null;
+            }
+
+            const string baseUrl =
+                "https://api.steampowered.com/IEconService/GetTradeOffers/v1/?get_sent_offers=1&get_received_offers=1&active_only=1&get_descriptions=1";
+            try
+            {
+                using (var wc = new WebClient())
+                {
+                    string response = await wc.DownloadStringTaskAsync($"{baseUrl}&key={ApiKey}");
+                    TradeOffersResponse tradeOffersResponse = JsonConvert.DeserializeObject<TradeOffersResponse>(response);
+                    return tradeOffersResponse.TradeOffers;
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public Confirmation[] FetchConfirmations()
@@ -158,7 +198,7 @@ namespace SteamAuth
         }
 
         /// <summary>
-        /// Deprecated. Simply returns conf.Creator.
+        ///     Deprecated. Simply returns conf.Creator.
         /// </summary>
         /// <param name="conf"></param>
         /// <returns>The Creator field of conf</returns>
@@ -194,6 +234,7 @@ namespace SteamAuth
         {
             string url = APIEndpoints.COMMUNITY_BASE + "/mobileconf/ajaxop";
             string queryString = "?op=" + op + "&";
+
             // tag is different from op now
             string tag = op == "allow" ? "accept" : "reject";
             queryString += GenerateConfirmationQueryParams(tag);
@@ -210,6 +251,7 @@ namespace SteamAuth
         private async Task<bool> _sendMultiConfirmationAjax(Confirmation[] confs, string op)
         {
             string url = APIEndpoints.COMMUNITY_BASE + "/mobileconf/multiajaxop";
+
             // tag is different from op now
             string tag = op == "allow" ? "accept" : "reject";
             string query = "op=" + op + "&" + GenerateConfirmationQueryParams(tag);
@@ -227,6 +269,7 @@ namespace SteamAuth
                 wc.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=UTF-8";
                 response = await wc.UploadStringTaskAsync(new Uri(url), "POST", query);
             }
+
             if (response == null) return false;
 
             SendConfirmationResponse confResponse = JsonConvert.DeserializeObject<SendConfirmationResponse>(response);
@@ -283,6 +326,7 @@ namespace SteamAuth
                     n2 = 8 + tag.Length;
                 }
             }
+
             byte[] array = new byte[n2];
             int n3 = 8;
             while (true)
@@ -292,10 +336,12 @@ namespace SteamAuth
                 {
                     break;
                 }
+
                 array[n4] = (byte)time;
                 time >>= 8;
                 n3 = n4;
             }
+
             if (tag != null)
             {
                 Array.Copy(Encoding.UTF8.GetBytes(tag), 0, array, 8, n2 - 8);
