@@ -210,12 +210,12 @@ namespace SteamAuth
             return (long)conf.Creator;
         }
 
-        public async Task<bool> AcceptMultipleConfirmations(Confirmation[] confs)
+        public async Task<bool> AcceptMultipleConfirmations(IEnumerable<Confirmation> confs)
         {
             return await _sendMultiConfirmationAjax(confs, "allow");
         }
 
-        public async Task<bool> DenyMultipleConfirmations(Confirmation[] confs)
+        public async Task<bool> DenyMultipleConfirmations(IEnumerable<Confirmation> confs)
         {
             return await _sendMultiConfirmationAjax(confs, "cancel");
         }
@@ -248,7 +248,7 @@ namespace SteamAuth
             return confResponse.Success;
         }
 
-        private async Task<bool> _sendMultiConfirmationAjax(Confirmation[] confs, string op)
+        private async Task<bool> _sendMultiConfirmationAjax(IEnumerable<Confirmation> confs, string op)
         {
             string url = APIEndpoints.COMMUNITY_BASE + "/mobileconf/multiajaxop";
 
