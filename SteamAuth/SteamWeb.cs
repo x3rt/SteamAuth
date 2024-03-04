@@ -20,6 +20,7 @@ namespace SteamAuth
                 wc.Headers[HttpRequestHeader.UserAgent] = SteamWeb.MOBILE_APP_USER_AGENT;
                 response = await wc.DownloadStringTaskAsync(url);
             }
+
             return response;
         }
 
@@ -37,6 +38,7 @@ namespace SteamAuth
                 byte[] result = await wc.UploadValuesTaskAsync(new Uri(url), "POST", body);
                 response = Encoding.UTF8.GetString(result);
             }
+
             return response;
         }
     }

@@ -7,8 +7,10 @@ using System.Text;
 namespace SteamAuth
 {
     /// <summary>
-    /// Class to help align system time with the Steam server time. Not super advanced; probably not taking some things into account that it should.
-    /// Necessary to generate up-to-date codes. In general, this will have an error of less than a second, assuming Steam is operational.
+    ///     Class to help align system time with the Steam server time. Not super advanced; probably not taking some things
+    ///     into account that it should.
+    ///     Necessary to generate up-to-date codes. In general, this will have an error of less than a second, assuming Steam
+    ///     is operational.
     /// </summary>
     public class TimeAligner
     {
@@ -21,6 +23,7 @@ namespace SteamAuth
             {
                 TimeAligner.AlignTime();
             }
+
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds() + _timeDifference;
         }
 
@@ -30,6 +33,7 @@ namespace SteamAuth
             {
                 await TimeAligner.AlignTimeAsync();
             }
+
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds() + _timeDifference;
         }
 
@@ -81,7 +85,6 @@ namespace SteamAuth
                 [JsonProperty("server_time")]
                 public long ServerTime { get; set; }
             }
-
         }
     }
 }

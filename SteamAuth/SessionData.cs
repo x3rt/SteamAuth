@@ -29,17 +29,20 @@ namespace SteamAuth
             string responseStr;
             try
             {
-                var postData = new NameValueCollection();
+                NameValueCollection postData = new NameValueCollection();
                 postData.Add("refresh_token", this.RefreshToken);
                 postData.Add("steamid", this.SteamID.ToString());
-                responseStr = await SteamWeb.POSTRequest("https://api.steampowered.com/IAuthenticationService/GenerateAccessTokenForApp/v1/", null, postData);
+                responseStr = await SteamWeb.POSTRequest(
+                    "https://api.steampowered.com/IAuthenticationService/GenerateAccessTokenForApp/v1/",
+                    null,
+                    postData);
             }
             catch (Exception ex)
             {
                 throw new Exception("Failed to refresh token: " + ex.Message);
             }
 
-            var response = JsonConvert.DeserializeObject<GenerateAccessTokenForAppResponse>(responseStr);
+            GenerateAccessTokenForAppResponse response = JsonConvert.DeserializeObject<GenerateAccessTokenForAppResponse>(responseStr);
             this.AccessToken = response.Response.AccessToken;
         }
 
@@ -61,17 +64,18 @@ namespace SteamAuth
 
         private bool IsTokenExpired(string token)
         {
-            var tokenComponents = token.Split('.');
+            string[] tokenComponents = token.Split('.');
+
             // Fix up base64url to normal base64
-            var base64 = tokenComponents[1].Replace('-', '+').Replace('_', '/');
+            string base64 = tokenComponents[1].Replace('-', '+').Replace('_', '/');
 
             if (base64.Length % 4 != 0)
             {
                 base64 += new string('=', 4 - base64.Length % 4);
             }
 
-            var payloadBytes = Convert.FromBase64String(base64);
-            var jwt = JsonConvert.DeserializeObject<SteamAccessToken>(System.Text.Encoding.UTF8.GetString(payloadBytes));
+            byte[] payloadBytes = Convert.FromBase64String(base64);
+            SteamAccessToken jwt = JsonConvert.DeserializeObject<SteamAccessToken>(System.Text.Encoding.UTF8.GetString(payloadBytes));
 
             // Compare expire time of the token to the current time
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds() > jwt.exp;
@@ -82,7 +86,7 @@ namespace SteamAuth
             if (this.SessionID == null)
                 this.SessionID = GenerateSessionID();
 
-            var cookies = new CookieContainer();
+            CookieContainer cookies = new CookieContainer();
             foreach (string domain in new string[] { "steamcommunity.com", "store.steampowered.com" })
             {
                 cookies.Add(new Cookie("steamLoginSecure", this.GetSteamLoginSecure(), "/", domain));
@@ -90,6 +94,7 @@ namespace SteamAuth
                 cookies.Add(new Cookie("mobileClient", "android", "/", domain));
                 cookies.Add(new Cookie("mobileClientVersion", "777777 3.6.4", "/", domain));
             }
+
             return cookies;
         }
 

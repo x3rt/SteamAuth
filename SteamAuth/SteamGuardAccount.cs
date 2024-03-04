@@ -68,7 +68,7 @@ namespace SteamAuth
         /// <returns></returns>
         public async Task<bool> DeactivateAuthenticator(int scheme = 1)
         {
-            var postBody = new NameValueCollection();
+            NameValueCollection postBody = new NameValueCollection();
             postBody.Add("revocation_code", this.RevocationCode);
             postBody.Add("revocation_reason", "1");
             postBody.Add("steamguard_scheme", scheme.ToString());
@@ -78,7 +78,7 @@ namespace SteamAuth
                 postBody);
 
             // Parse to object
-            var removeResponse = JsonConvert.DeserializeObject<RemoveAuthenticatorResponse>(response);
+            RemoveAuthenticatorResponse removeResponse = JsonConvert.DeserializeObject<RemoveAuthenticatorResponse>(response);
 
             if (removeResponse == null || removeResponse.Response == null || !removeResponse.Response.Success) return false;
             return true;
@@ -153,7 +153,7 @@ namespace SteamAuth
                 "https://api.steampowered.com/IEconService/GetTradeOffers/v1/?get_sent_offers=1&get_received_offers=1&active_only=1&get_descriptions=1";
             try
             {
-                using (var wc = new WebClient())
+                using (WebClient wc = new WebClient())
                 {
                     string response = await wc.DownloadStringTaskAsync($"{baseUrl}&key={ApiKey}");
                     TradeOffersResponse tradeOffersResponse = JsonConvert.DeserializeObject<TradeOffersResponse>(response);
@@ -182,7 +182,7 @@ namespace SteamAuth
 
         private Confirmation[] FetchConfirmationInternal(string response)
         {
-            var confirmationsResponse = JsonConvert.DeserializeObject<ConfirmationsResponse>(response);
+            ConfirmationsResponse confirmationsResponse = JsonConvert.DeserializeObject<ConfirmationsResponse>(response);
 
             if (!confirmationsResponse.Success)
             {
@@ -255,7 +255,7 @@ namespace SteamAuth
             // tag is different from op now
             string tag = op == "allow" ? "accept" : "reject";
             string query = "op=" + op + "&" + GenerateConfirmationQueryParams(tag);
-            foreach (var conf in confs)
+            foreach (Confirmation conf in confs)
             {
                 query += "&cid[]=" + conf.ID + "&ck[]=" + conf.Key;
             }
@@ -288,7 +288,7 @@ namespace SteamAuth
             if (String.IsNullOrEmpty(DeviceID))
                 throw new ArgumentException("Device ID is not present");
 
-            var queryParams = GenerateConfirmationQueryParamsAsNVC(tag);
+            NameValueCollection queryParams = GenerateConfirmationQueryParamsAsNVC(tag);
 
             return string.Join("&", queryParams.AllKeys.Select(key => $"{key}={queryParams[key]}"));
         }
@@ -300,7 +300,7 @@ namespace SteamAuth
 
             long time = TimeAligner.GetSteamTime();
 
-            var ret = new NameValueCollection();
+            NameValueCollection ret = new NameValueCollection();
             ret.Add("p", this.DeviceID);
             ret.Add("a", this.Session.SteamID.ToString());
             ret.Add("k", _generateConfirmationHashForTime(time, tag));

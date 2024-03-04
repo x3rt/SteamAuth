@@ -22,7 +22,7 @@
                     {
                         _tradeOffers.AddRange(TradesResponse.TradeOffersSent);
                     }
-                    
+
                     if (TradesResponse.TradeOffersReceived != null)
                     {
                         _tradeOffers.AddRange(TradesResponse.TradeOffersReceived);
@@ -52,8 +52,6 @@
                 }
             }
         }
-        
-        
 
         private void ProcessSteamIds()
         {
@@ -62,7 +60,7 @@
                 tradeOffer.SteamId = GetSteamIdFromAccountId(tradeOffer.AccountIdOther);
             }
         }
-        
+
         private static string GetSteamIdFromAccountId(ulong accountId)
         {
             const ulong universe = 1;
@@ -135,7 +133,7 @@
 
         [JsonProperty("tradeid")]
         public string TradeId { get; set; }
-        
+
         public string SteamId { get; set; }
     }
 
