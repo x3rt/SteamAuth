@@ -1,38 +1,42 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-namespace SteamAuth
+﻿namespace SteamAuth
 {
+    using System;
+    using System.Collections.Specialized;
+    using System.Linq;
+    using System.Net;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Newtonsoft.Json;
+
     public class SessionData
     {
-        public ulong SteamID { get; set; }
+        public ulong SteamId { get; set; }
 
         public string AccessToken { get; set; }
 
         public string RefreshToken { get; set; }
 
-        public string SessionID { get; set; }
+        public string SessionId { get; set; }
 
         public async Task RefreshAccessToken()
         {
-            if (string.IsNullOrEmpty(this.RefreshToken))
+            if (string.IsNullOrEmpty(RefreshToken))
+            {
                 throw new Exception("Refresh token is empty");
+            }
 
-            if (IsTokenExpired(this.RefreshToken))
+            if (IsTokenExpired(RefreshToken))
+            {
                 throw new Exception("Refresh token is expired");
+            }
 
             string responseStr;
             try
             {
                 NameValueCollection postData = new NameValueCollection();
-                postData.Add("refresh_token", this.RefreshToken);
-                postData.Add("steamid", this.SteamID.ToString());
-                responseStr = await SteamWeb.POSTRequest(
+                postData.Add("refresh_token", RefreshToken);
+                postData.Add("steamid", SteamId.ToString());
+                responseStr = await SteamWeb.PostRequest(
                     "https://api.steampowered.com/IAuthenticationService/GenerateAccessTokenForApp/v1/",
                     null,
                     postData);
@@ -43,23 +47,27 @@ namespace SteamAuth
             }
 
             GenerateAccessTokenForAppResponse response = JsonConvert.DeserializeObject<GenerateAccessTokenForAppResponse>(responseStr);
-            this.AccessToken = response.Response.AccessToken;
+            AccessToken = response.Response.AccessToken;
         }
 
         public bool IsAccessTokenExpired()
         {
-            if (string.IsNullOrEmpty(this.AccessToken))
+            if (string.IsNullOrEmpty(AccessToken))
+            {
                 return true;
+            }
 
-            return IsTokenExpired(this.AccessToken);
+            return IsTokenExpired(AccessToken);
         }
 
         public bool IsRefreshTokenExpired()
         {
-            if (string.IsNullOrEmpty(this.RefreshToken))
+            if (string.IsNullOrEmpty(RefreshToken))
+            {
                 return true;
+            }
 
-            return IsTokenExpired(this.RefreshToken);
+            return IsTokenExpired(RefreshToken);
         }
 
         private bool IsTokenExpired(string token)
@@ -75,22 +83,24 @@ namespace SteamAuth
             }
 
             byte[] payloadBytes = Convert.FromBase64String(base64);
-            SteamAccessToken jwt = JsonConvert.DeserializeObject<SteamAccessToken>(System.Text.Encoding.UTF8.GetString(payloadBytes));
+            SteamAccessToken jwt = JsonConvert.DeserializeObject<SteamAccessToken>(Encoding.UTF8.GetString(payloadBytes));
 
             // Compare expire time of the token to the current time
-            return DateTimeOffset.UtcNow.ToUnixTimeSeconds() > jwt.exp;
+            return DateTimeOffset.UtcNow.ToUnixTimeSeconds() > jwt.Expiry;
         }
 
         public CookieContainer GetCookies()
         {
-            if (this.SessionID == null)
-                this.SessionID = GenerateSessionID();
+            if (SessionId == null)
+            {
+                SessionId = GenerateSessionId();
+            }
 
             CookieContainer cookies = new CookieContainer();
-            foreach (string domain in new string[] { "steamcommunity.com", "store.steampowered.com" })
+            foreach (string domain in new[] { "steamcommunity.com", "store.steampowered.com" })
             {
-                cookies.Add(new Cookie("steamLoginSecure", this.GetSteamLoginSecure(), "/", domain));
-                cookies.Add(new Cookie("sessionid", this.SessionID, "/", domain));
+                cookies.Add(new Cookie("steamLoginSecure", GetSteamLoginSecure(), "/", domain));
+                cookies.Add(new Cookie("sessionid", SessionId, "/", domain));
                 cookies.Add(new Cookie("mobileClient", "android", "/", domain));
                 cookies.Add(new Cookie("mobileClientVersion", "777777 3.6.4", "/", domain));
             }
@@ -100,10 +110,10 @@ namespace SteamAuth
 
         private string GetSteamLoginSecure()
         {
-            return this.SteamID.ToString() + "%7C%7C" + this.AccessToken;
+            return SteamId + "%7C%7C" + AccessToken;
         }
 
-        private static string GenerateSessionID()
+        private static string GenerateSessionId()
         {
             return GetRandomHexNumber(32);
         }
@@ -113,15 +123,19 @@ namespace SteamAuth
             Random random = new Random();
             byte[] buffer = new byte[digits / 2];
             random.NextBytes(buffer);
-            string result = String.Concat(buffer.Select(x => x.ToString("X2")).ToArray());
+            string result = string.Concat(buffer.Select(x => x.ToString("X2")).ToArray());
             if (digits % 2 == 0)
+            {
                 return result;
+            }
+
             return result + random.Next(16).ToString("X");
         }
 
         private class SteamAccessToken
         {
-            public long exp { get; set; }
+            [JsonProperty("exp")]
+            public long Expiry { get; set; }
         }
 
         private class GenerateAccessTokenForAppResponse

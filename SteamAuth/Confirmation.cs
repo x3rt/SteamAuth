@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
-namespace SteamAuth
+﻿namespace SteamAuth
 {
+    using System.Collections.Generic;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+
     public class Confirmation
     {
         [JsonProperty(PropertyName = "id")]
-        public ulong ID { get; set; }
+        public ulong Id { get; set; }
 
         [JsonProperty(PropertyName = "nonce")]
         public ulong Key { get; set; }
@@ -20,7 +19,7 @@ namespace SteamAuth
         public string Headline { get; set; }
 
         [JsonProperty(PropertyName = "summary")]
-        public List<String> Summary { get; set; }
+        public List<string> Summary { get; set; }
 
         [JsonProperty(PropertyName = "accept")]
         public string Accept { get; set; }
@@ -43,7 +42,7 @@ namespace SteamAuth
             MarketListing = 3,
             FeatureOptOut = 4,
             PhoneNumberChange = 5,
-            AccountRecovery = 6
+            AccountRecovery = 6,
         }
     }
 

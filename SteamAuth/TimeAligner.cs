@@ -1,11 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Net;
-using Newtonsoft.Json;
-using System.Text;
-
-namespace SteamAuth
+﻿namespace SteamAuth
 {
+    using System;
+    using System.Net;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Newtonsoft.Json;
+
     /// <summary>
     ///     Class to help align system time with the Steam server time. Not super advanced; probably not taking some things
     ///     into account that it should.
@@ -14,14 +14,14 @@ namespace SteamAuth
     /// </summary>
     public class TimeAligner
     {
-        private static bool _aligned = false;
-        private static int _timeDifference = 0;
+        private static bool _aligned;
+        private static int _timeDifference;
 
         public static long GetSteamTime()
         {
-            if (!TimeAligner._aligned)
+            if (!_aligned)
             {
-                TimeAligner.AlignTime();
+                AlignTime();
             }
 
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds() + _timeDifference;
@@ -29,9 +29,9 @@ namespace SteamAuth
 
         public static async Task<long> GetSteamTimeAsync()
         {
-            if (!TimeAligner._aligned)
+            if (!_aligned)
             {
-                await TimeAligner.AlignTimeAsync();
+                await AlignTimeAsync();
             }
 
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds() + _timeDifference;
@@ -45,14 +45,13 @@ namespace SteamAuth
                 client.Encoding = Encoding.UTF8;
                 try
                 {
-                    string response = client.UploadString(APIEndpoints.TWO_FACTOR_TIME_QUERY, "steamid=0");
+                    string response = client.UploadString(ApiEndpoints.TwoFactorTimeQuery, "steamid=0");
                     TimeQuery query = JsonConvert.DeserializeObject<TimeQuery>(response);
-                    TimeAligner._timeDifference = (int)(query.Response.ServerTime - currentTime);
-                    TimeAligner._aligned = true;
+                    _timeDifference = (int)(query.Response.ServerTime - currentTime);
+                    _aligned = true;
                 }
                 catch (WebException)
                 {
-                    return;
                 }
             }
         }
@@ -64,14 +63,13 @@ namespace SteamAuth
             try
             {
                 client.Encoding = Encoding.UTF8;
-                string response = await client.UploadStringTaskAsync(new Uri(APIEndpoints.TWO_FACTOR_TIME_QUERY), "steamid=0");
+                string response = await client.UploadStringTaskAsync(new Uri(ApiEndpoints.TwoFactorTimeQuery), "steamid=0");
                 TimeQuery query = JsonConvert.DeserializeObject<TimeQuery>(response);
-                TimeAligner._timeDifference = (int)(query.Response.ServerTime - currentTime);
-                TimeAligner._aligned = true;
+                _timeDifference = (int)(query.Response.ServerTime - currentTime);
+                _aligned = true;
             }
             catch (WebException)
             {
-                return;
             }
         }
 
