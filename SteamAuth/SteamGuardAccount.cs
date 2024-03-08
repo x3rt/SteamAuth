@@ -163,9 +163,10 @@
                     return tradeOffersResponse.TradeOffers;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return null;
+                Console.WriteLine(e);
+                throw;
             }
         }
 

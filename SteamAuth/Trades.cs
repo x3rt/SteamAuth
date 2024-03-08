@@ -45,7 +45,9 @@
         {
             foreach (TradeOffer tradeOffer in TradeOffers)
             {
-                foreach (Item item in tradeOffer.ItemsToGive.Concat(tradeOffer.ItemsToReceive))
+                IEnumerable<Item> items = tradeOffer.ItemsToGive ?? Enumerable.Empty<Item>();
+                items = items.Concat(tradeOffer.ItemsToReceive ?? Enumerable.Empty<Item>());
+                foreach (Item item in items)
                 {
                     item.CorrespondingDescription =
                         TradesResponse.Descriptions.FirstOrDefault(d => d.ClassId == item.ClassId && d.InstanceId == item.InstanceId);
