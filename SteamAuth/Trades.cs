@@ -50,7 +50,7 @@
                 foreach (Item item in items)
                 {
                     item.CorrespondingDescription =
-                        TradesResponse.Descriptions.FirstOrDefault(d => d.ClassId == item.ClassId && d.InstanceId == item.InstanceId);
+                        TradesResponse?.Descriptions?.FirstOrDefault(d => d.ClassId == item.ClassId && d.InstanceId == item.InstanceId);
                 }
             }
         }
