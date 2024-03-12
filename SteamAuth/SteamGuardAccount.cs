@@ -170,6 +170,33 @@
             }
         }
 
+        public DateTime? GetCreationTime(string steamId)
+        {
+            const string baseUrl = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/";
+            try
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    string response = wc.DownloadString($"{baseUrl}?key={ApiKey}&steamids={steamId}");
+                    PlayerSummary playerSummary = JsonConvert.DeserializeObject<PlayerSummary>(response);
+
+                    if (playerSummary.Response.Players.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    Player player = playerSummary.Response.Players[0];
+                    DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(player.TimeCreated);
+                    return dateTimeOffset.UtcDateTime;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
         public Confirmation[] FetchConfirmations()
         {
             string url = GenerateConfirmationUrl();
