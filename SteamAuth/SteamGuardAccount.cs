@@ -196,6 +196,25 @@
                 return null;
             }
         }
+        
+        public int? GetSteamLevel(string steamId)
+        {
+            const string baseUrl = "https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/";
+            try
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    string response = wc.DownloadString($"{baseUrl}?key={ApiKey}&steamid={steamId}");
+                    SteamLevelResponse steamLevelResponse = JsonConvert.DeserializeObject<SteamLevelResponse>(response);
+                    return steamLevelResponse.Response.PlayerLevel;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
 
         public Confirmation[] FetchConfirmations()
         {
