@@ -158,7 +158,7 @@
             {
                 using (WebClient wc = new WebClient())
                 {
-                    string response = await wc.DownloadStringTaskAsync($"{baseUrl}&key={ApiKey}");
+                    string response = await wc.DownloadStringTaskAsync($"{baseUrl}&key={ApiKey}&access_token={Session.AccessToken}");
                     TradeOffersResponse tradeOffersResponse = JsonConvert.DeserializeObject<TradeOffersResponse>(response);
                     return tradeOffersResponse.TradeOffers;
                 }
